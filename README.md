@@ -27,6 +27,10 @@ In order to run the program follow the steps
    ```sh
    git clone https://github.com/yaronO/dns-sniffer.git
    ```
+2. cd to directory
+   ```sh
+   cd dns-sniffer
+   ```
 3. compile 
    ```sh
    gcc -o dns-sniffer dns-sniffer.c -lpcap
