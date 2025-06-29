@@ -13,7 +13,7 @@ The test ware made on linux machine (ubunru server 24.04 TLS)
 
 ### Prerequisites
 
-The code uses the libpcap development package, install if not already install 
+The code uses the libpcap development package, install if not already installed
 * libpcap
   ```sh
   sudo apt-get install libpcap-dev
