@@ -149,7 +149,6 @@ void packet_handler(u_char *user_data, const struct pcap_pkthdr *pkthdr, const u
     struct iphdr *ip_header;
     struct udphdr *udp_header;
     unsigned char *dns_data;
-    unsigned char eth_header;
     int res = 0;
     
     // Skip Ethernet header (14 bytes)
