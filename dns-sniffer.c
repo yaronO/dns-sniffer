@@ -65,15 +65,14 @@ struct R_DATA
 };
 #pragma pack(pop) // Restore
 
-int DnsHandle(unsigned char *);
-int ReadDomainFromQuestion(unsigned char *, unsigned char **);
-int ReadDnsAnswers(unsigned char *, struct DNS_HEADER *, struct RES_RECORD *, unsigned char *);
+ 
+int DnsHandle(unsigned char *); 
+int ReadDomainFromQuestion(unsigned char *, unsigned char **); 
+int ReadDnsAnswers(unsigned char *, struct DNS_HEADER *, struct RES_RECORD *, unsigned char *); 
 int ReadRdata(unsigned char *, struct RES_RECORD *);
-void PrintResults(int, struct RES_RECORD answers[], unsigned char **);
+void PrintResults(int, struct RES_RECORD answers[], unsigned char **); 
 unsigned char* ReadName(unsigned char *, unsigned char *, int *);
 void CleanUp(struct RES_RECORD *, int);
-
-// libpcap packet handler
 void packet_handler(u_char *user_data, const struct pcap_pkthdr *pkthdr, const u_char *packet);
 
 int main() {
@@ -145,12 +144,14 @@ int main() {
     return 0;
 }
 
+// libpcap packet handler
 void packet_handler(u_char *user_data, const struct pcap_pkthdr *pkthdr, const u_char *packet) {
     struct iphdr *ip_header;
     struct udphdr *udp_header;
     unsigned char *dns_data;
     unsigned char eth_header;
-
+    int res = 0;
+    
     // Skip Ethernet header (14 bytes)
     const u_char *ip_packet = packet + ETH_HLEN;
     
@@ -178,16 +179,20 @@ void packet_handler(u_char *user_data, const struct pcap_pkthdr *pkthdr, const u
     dns_data = (unsigned char*)(ip_packet + ip_header_len + sizeof(struct udphdr));
     
    // forwared DNS packet to handle result 
-    DnsHandle(dns_data);
+    res = DnsHandle(dns_data);
+    if (res == -1)
+    {
+        return; 
+    }
 }
 
-// Handle only DNS packet 
+//Function handle the DNS packet 
 int DnsHandle(unsigned char *dns_data)
 {
 
     struct DNS_HEADER *dns_header;    
     struct RES_RECORD answers[20]; //the replies from the DNS server
-    unsigned char *reader; // pointer run of dns ANSWER record
+    unsigned char *reader; // pointer that run over dns ANSWER record
     unsigned char *domain_name;
     int res = 0;
     
@@ -221,6 +226,7 @@ int DnsHandle(unsigned char *dns_data)
     return 0;
 }
 
+//Extract the Domain name
 int ReadDomainFromQuestion( unsigned char *dns_data, unsigned char **domain_name)
 { 
     unsigned char *qname,*reader;
@@ -235,6 +241,7 @@ int ReadDomainFromQuestion( unsigned char *dns_data, unsigned char **domain_name
     return 0; 
 }
 
+//Function that extract IP's, and save to array for forther use
 int ReadDnsAnswers(unsigned char *reader, struct DNS_HEADER *dns, struct RES_RECORD *answers, unsigned char *dns_start)
 {
     int offset=0;
@@ -281,6 +288,7 @@ int ReadDnsAnswers(unsigned char *reader, struct DNS_HEADER *dns, struct RES_REC
     }
 }
 
+//Read RDATA from ANSWER record and save it in answer for forther use
 int ReadRdata(unsigned char *reader , struct RES_RECORD *answer)
 {
     int j;
@@ -299,6 +307,7 @@ int ReadRdata(unsigned char *reader , struct RES_RECORD *answer)
     return 0;
 }
 
+//Print out results
 void PrintResults(int ans_count, struct RES_RECORD *answers, unsigned char **domain_name)
 {
     int i;
@@ -339,6 +348,7 @@ void PrintResults(int ans_count, struct RES_RECORD *answers, unsigned char **dom
     free(*domain_name); // free domain name memory from ReadNane
 }
 
+//Read NAME QNAME CNAME etc..., hande packets with reduction scheme
 unsigned char* ReadName(unsigned char *reader, unsigned char *dns_start, int *rel_offset)
 {
     unsigned char *name; //store the name 
@@ -405,6 +415,7 @@ unsigned char* ReadName(unsigned char *reader, unsigned char *dns_start, int *re
     return name;
 }
 
+//Clean up function if error occur
 void CleanUp(struct RES_RECORD *answers, int num_to_clean)
 {
     int i;
