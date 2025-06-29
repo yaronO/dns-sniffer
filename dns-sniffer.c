@@ -247,7 +247,8 @@ int ReadDnsAnswers(unsigned char *reader, struct DNS_HEADER *dns, struct RES_REC
     int i,j;
     int res =0;
     
-    // Run over al ANSWERS in DNS and read name and ip
+    //Run over all ANSWERS RECORDS in response message and for each one parse the  NAME and RDATA
+    //ntohs - function converts the unsigned short integer netshort from network byte order to host byte order
     for(i=0;i<ntohs(dns->ans_count);i++)
     {
         answers[i].name=ReadName(reader,dns_start,&offset); // read NAME in ANSWER record
@@ -260,7 +261,7 @@ int ReadDnsAnswers(unsigned char *reader, struct DNS_HEADER *dns, struct RES_REC
         answers[i].resource = (struct R_DATA*)(reader); // parse information data from ANSWER record
         reader = reader + sizeof(struct R_DATA); // point to the start of RDATA
 
-        // Check TYPE and validate length, Each TYPE parse the IP and move reader pointer to next DNS ANSWER record
+        // Check TYPE and validate length, Each TYPE parse the RDATA and move reader pointer to next DNS ANSWER record
         if ((ntohs(answers[i].resource->type) == A) && (ntohs(answers[i].resource->data_len) == A_LENGTH ))
         {
             res = ReadRdata(reader, &answers[i]);
@@ -276,7 +277,8 @@ int ReadDnsAnswers(unsigned char *reader, struct DNS_HEADER *dns, struct RES_REC
             answers[i].rdata = ReadName(reader,dns_start,&offset);
             reader = reader + offset;
         }
-        
+
+        //Check allocation faiure during rdata allocation
         if (res == 1)
         {
             free(answers[i].name);
@@ -313,7 +315,9 @@ void PrintResults(int ans_count, struct RES_RECORD *answers, unsigned char **dom
 
     printf("Domain : %s\n",*domain_name);
 
-    // For each answer parse relevant ip to readable format, print the ip , free memory after use
+    //For each answer parse relevant ip to readable format, print the ip , free memory after use
+    //inet_ntoa - convert converts the Internet host address in, given in network byte order, to a string in IPv4 dotted-decimal notation
+    //inet_ntop -This function converts the network address structure src in the af address family into a character string
     for(i=0 ; i < ans_count ; i++)
     {
         switch(ntohs(answers[i].resource->type)){
